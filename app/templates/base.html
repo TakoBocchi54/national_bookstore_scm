@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}National Book Store{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --brand-red: #DC143C;
+            --brand-red-dark: #b8102f;
+            --sidebar-width: 250px;
+        }
+        
+        body {
+            background-color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        /* Navbar Styles */
+        .navbar {
+            background: var(--brand-red) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 0.75rem 1rem;
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .navbar-brand:hover {
+            color: #f0f0f0 !important;
+        }
+        
+        .navbar-brand small {
+            font-size: 0.75rem;
+            font-weight: normal;
+            opacity: 0.9;
+            display: block;
+            line-height: 1;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white !important;
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .dropdown-item:active {
+            background-color: var(--brand-red);
+        }
+        
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            color: white !important;
+            font-size: 1.25rem;
+            padding: 0.5rem 0.75rem !important;
+        }
+        
+        .notification-bell:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ffc107;
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            min-height: calc(100vh - 56px);
+        }
+        
+        /* Cards */
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 2px solid var(--brand-red);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: var(--brand-red);
+            border-color: var(--brand-red);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background: var(--brand-red-dark);
+            border-color: var(--brand-red-dark);
+        }
+        
+        .btn-outline-primary {
+            color: var(--brand-red);
+            border-color: var(--brand-red);
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--brand-red);
+            border-color: var(--brand-red);
+        }
+        
+        /* Tables */
+        .table thead {
+            background: #f8f9fa;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 0.35em 0.65em;
+            font-weight: 500;
+        }
+        
+        /* Alerts */
+        .alert {
+            border: none;
+            border-radius: 8px;
+        }
+        
+        /* Flash Messages */
+        .flash-messages {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 400px;
+        }
+        
+        /* Status Badges */
+        .status-in-stock {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-low-stock {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .status-out-of-stock {
+            background: #dc3545;
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .navbar-brand small {
+                display: none;
+            }
+        }
+        
+        /* Custom Styles */
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
+                <div>
+                    <i class="bi bi-book"></i> National Book Store
+                    <small>Inventory & Supply Chain Management</small>
+                </div>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    
+                    {% if session.role in ['Manager', 'Inventory Staff'] %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('suppliers.list_suppliers') }}">
+                            <i class="bi bi-truck"></i> Suppliers
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('products.list_products') }}">
+                            <i class="bi bi-box-seam"></i> Products
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('inventory.view_inventory') }}">
+                            <i class="bi bi-clipboard-data"></i> Inventory
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-cart"></i> Procurement
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('purchase_orders.list_pos') }}">
+                                <i class="bi bi-file-earmark-text"></i> Purchase Orders
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('deliveries.list_deliveries') }}">
+                                <i class="bi bi-inbox"></i> Deliveries
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('sales.list_sales') }}">
+                            <i class="bi bi-cash-coin"></i> Sales
+                        </a>
+                    </li>
+                    
+                    {% if session.role == 'Manager' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('reports.index') }}">
+                            <i class="bi bi-graph-up"></i> Reports
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <!-- Notification Bell -->
+                    <li class="nav-item">
+                        <a class="nav-link notification-bell" href="{{ url_for('inventory.low_stock_alerts') }}" 
+                           title="Low Stock Alerts">
+                            <i class="bi bi-bell"></i>
+                            <span class="notification-badge" id="notification-count" style="display: none;">0</span>
+                        </a>
+                    </li>
+                    
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ session.full_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">
+                                <div>{{ session.full_name }}</div>
+                                <small class="text-muted">{{ session.role }}</small>
+                            </h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.flash-messages .alert');
+                alerts.forEach(function(alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+        
+        // Update notification badge count
+        function updateNotificationCount() {
+            fetch('{{ url_for("inventory.get_low_stock_count") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notification-count');
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error fetching notification count:', error));
+        }
+        
+        // Update notification count on page load and every 60 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNotificationCount();
+            setInterval(updateNotificationCount, 60000);
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

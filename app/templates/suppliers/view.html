@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}{{ supplier.name }} - Suppliers - National Book Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-truck"></i> {{ supplier.name }}
+        </h1>
+        <div>
+            <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            {% if session.role in ['Manager', 'Inventory Staff'] %}
+            <a href="{{ url_for('suppliers.edit_supplier', supplier_id=supplier.id) }}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row g-3">
+        <!-- Supplier Information -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-info-circle"></i> Supplier Information
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th width="40%">Supplier Name:</th>
+                                <td>{{ supplier.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Contact Person:</th>
+                                <td>{{ supplier.contact_person or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Phone:</th>
+                                <td>{{ supplier.phone or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ supplier.email or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Address:</th>
+                                <td>{{ supplier.address or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    {% if supplier.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                    {% if session.role in ['Manager', 'Inventory Staff'] %}
+                                    <form method="POST" action="{{ url_for('suppliers.toggle_status', supplier_id=supplier.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-link">
+                                            Toggle
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Created:</th>
+                                <td>{{ supplier.created_at.strftime('%B %d, %Y') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart"></i> Quick Statistics
+                </div>
+                <div class="card-body">
+                    <div class="row text-center g-3">
+                        <div class="col-6">
+                            <div class="p-3 border rounded">
+                                <h4 class="mb-1">{{ products|length }}</h4>
+                                <p class="text-muted mb-0 small">Products</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 border rounded">
+                                <h4 class="mb-1">{{ purchase_orders|length }}</h4>
+                                <p class="text-muted mb-0 small">Recent Orders</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products from this Supplier -->
+    <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-box-seam"></i> Products ({{ products|length }})</span>
+            {% if session.role in ['Manager', 'Inventory Staff'] %}
+            <a href="{{ url_for('products.add_product', supplier_id=supplier.id) }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Product
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if products %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td><a href="{{ url_for('products.view_product', product_id=product.id) }}">{{ product.title }}</a></td>
+                            <td>{{ product.author or '-' }}</td>
+                            <td>{{ product.category or '-' }}</td>
+                            <td>₱{{ "{:,.2f}".format(product.unit_price) }}</td>
+                            <td>{{ product.current_stock }}</td>
+                            <td>
+                                {% if product.stock_status == 'In Stock' %}
+                                    <span class="badge status-in-stock">{{ product.stock_status }}</span>
+                                {% elif product.stock_status == 'Low Stock' %}
+                                    <span class="badge status-low-stock">{{ product.stock_status }}</span>
+                                {% else %}
+                                    <span class="badge status-out-of-stock">{{ product.stock_status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-box-seam"></i>
+                <p>No products from this supplier yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recent Purchase Orders -->
+    {% if session.role in ['Manager', 'Inventory Staff'] %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="bi bi-file-earmark-text"></i> Recent Purchase Orders (Last 10)
+        </div>
+        <div class="card-body">
+            {% if purchase_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>PO Number</th>
+                            <th>Order Date</th>
+                            <th>Expected Delivery</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for po in purchase_orders %}
+                        <tr>
+                            <td><a href="{{ url_for('purchase_orders.view_po', po_id=po.id) }}">{{ po.po_number }}</a></td>
+                            <td>{{ po.order_date.strftime('%b %d, %Y') }}</td>
+                            <td>{{ po.expected_delivery_date.strftime('%b %d, %Y') if po.expected_delivery_date else '-' }}</td>
+                            <td>₱{{ "{:,.2f}".format(po.total_amount) }}</td>
+                            <td>
+                                {% if po.status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark">{{ po.status }}</span>
+                                {% elif po.status == 'Approved' %}
+                                    <span class="badge bg-info">{{ po.status }}</span>
+                                {% elif po.status == 'Ordered' %}
+                                    <span class="badge bg-primary">{{ po.status }}</span>
+                                {% elif po.status == 'Delivered' %}
+                                    <span class="badge bg-success">{{ po.status }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ po.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-file-earmark-text"></i>
+                <p>No purchase orders yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

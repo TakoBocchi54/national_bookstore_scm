@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Delivery {{ delivery.delivery_number }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4"><i class="bi bi-inbox"></i> Delivery {{ delivery.delivery_number }}</h1>
+    <div class="card mb-3">
+        <div class="card-body">
+            <p><strong>PO:</strong> <a href="{{ url_for('purchase_orders.view_po', po_id=delivery.purchase_order.id) }}">{{ delivery.purchase_order.po_number }}</a></p>
+            <p><strong>Supplier:</strong> {{ delivery.purchase_order.supplier.name }}</p>
+            <p><strong>Delivery Date:</strong> {{ delivery.delivery_date.strftime('%b %d, %Y %I:%M %p') }}</p>
+            <p><strong>Received By:</strong> {{ delivery.receiver.full_name }}</p>
+            <p><strong>Status:</strong> <span class="badge bg-success">{{ delivery.status }}</span></p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">Delivered Items</div>
+        <div class="card-body">
+            <table class="table">
+                <thead><tr><th>Product</th><th>Quantity Received</th></tr></thead>
+                <tbody>
+                    {% for item in delivery.items %}
+                    <tr><td>{{ item.product.title }}</td><td>{{ item.quantity_received }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

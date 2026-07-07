@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - National Book Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+        <div class="text-muted">
+            <i class="bi bi-calendar3"></i> {{ now().strftime('%B %d, %Y') }}
+        </div>
+    </div>
+    
+    <!-- Key Metrics Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Sales Today -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Today's Sales</p>
+                            <h3 class="mb-0">₱{{ "{:,.2f}".format(today_sales) }}</h3>
+                        </div>
+                        <div class="stats-icon text-success">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Monthly Sales -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">This Month</p>
+                            <h3 class="mb-0">₱{{ "{:,.2f}".format(month_sales) }}</h3>
+                        </div>
+                        <div class="stats-icon text-primary">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Products -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Total Products</p>
+                            <h3 class="mb-0">{{ total_products }}</h3>
+                            <small class="text-success">{{ in_stock_count }} in stock</small>
+                        </div>
+                        <div class="stats-icon text-info">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Inventory Value -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Inventory Value</p>
+                            <h3 class="mb-0">₱{{ "{:,.2f}".format(inventory_value) }}</h3>
+                        </div>
+                        <div class="stats-icon text-warning">
+                            <i class="bi bi-clipboard-data"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stock Status Overview -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ in_stock_count }}</h4>
+                    <p class="text-muted mb-0">In Stock</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ low_stock_count }}</h4>
+                    <p class="text-muted mb-0">Low Stock</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-x-circle text-danger" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ out_of_stock_count }}</h4>
+                    <p class="text-muted mb-0">Out of Stock</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Low Stock Alerts -->
+    {% if low_stock_products %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-exclamation-triangle-fill text-warning"></i> Low Stock Alerts</span>
+                    <a href="{{ url_for('inventory.low_stock_alerts') }}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Current Stock</th>
+                                    <th>Reorder Level</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in low_stock_products %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ product.title }}</strong>
+                                        {% if product.author %}<br><small class="text-muted">by {{ product.author }}</small>{% endif %}
+                                    </td>
+                                    <td>{{ product.category or 'N/A' }}</td>
+                                    <td><span class="badge bg-warning text-dark">{{ product.current_stock }}</span></td>
+                                    <td>{{ product.reorder_level }}</td>
+                                    <td>
+                                        {% if product.current_stock == 0 %}
+                                            <span class="badge status-out-of-stock">Out of Stock</span>
+                                        {% else %}
+                                            <span class="badge status-low-stock">Low Stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if session.role in ['Manager', 'Inventory Staff'] %}
+                                        <a href="{{ url_for('purchase_orders.create_po', product_id=product.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="bi bi-cart-plus"></i> Order
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row g-3">
+        <!-- Recent Sales -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-cash-coin"></i> Recent Sales</span>
+                    <a href="{{ url_for('sales.list_sales') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_sales_transactions %}
+                    <div class="list-group list-group-flush">
+                        {% for sale in recent_sales_transactions %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ sale.transaction_number }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar3"></i> {{ sale.transaction_date.strftime('%b %d, %Y %I:%M %p') }}
+                                    </small>
+                                    {% if sale.customer_name %}
+                                    <br><small class="text-muted">Customer: {{ sale.customer_name }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <strong class="text-success">₱{{ "{:,.2f}".format(sale.total_amount) }}</strong>
+                                    <br><small class="text-muted">{{ sale.payment_method }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-receipt"></i>
+                        <p>No sales recorded yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Selling Products -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-star-fill text-warning"></i> Top Selling Products (Last 30 Days)
+                </div>
+                <div class="card-body">
+                    {% if top_products %}
+                    <div class="list-group list-group-flush">
+                        {% for product in top_products %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ product.title }}</h6>
+                                    <small class="text-muted">{{ product.total_sold }} units sold</small>
+                                </div>
+                                <div class="text-end">
+                                    <strong class="text-success">₱{{ "{:,.2f}".format(product.total_revenue) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-graph-up"></i>
+                        <p>No sales data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pending Purchase Orders (for Managers and Inventory Staff) -->
+    {% if session.role in ['Manager', 'Inventory Staff'] and pending_purchase_orders %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-file-earmark-text"></i> Pending Purchase Orders</span>
+                    <a href="{{ url_for('purchase_orders.list_pos') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>PO Number</th>
+                                    <th>Supplier</th>
+                                    <th>Order Date</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for po in pending_purchase_orders %}
+                                <tr>
+                                    <td><a href="{{ url_for('purchase_orders.view_po', po_id=po.id) }}">{{ po.po_number }}</a></td>
+                                    <td>{{ po.supplier.name }}</td>
+                                    <td>{{ po.order_date.strftime('%b %d, %Y') }}</td>
+                                    <td>₱{{ "{:,.2f}".format(po.total_amount) }}</td>
+                                    <td>
+                                        {% if po.status == 'Pending' %}
+                                            <span class="badge bg-warning text-dark">{{ po.status }}</span>
+                                        {% elif po.status == 'Approved' %}
+                                            <span class="badge bg-info">{{ po.status }}</span>
+                                        {% elif po.status == 'Ordered' %}
+                                            <span class="badge bg-primary">{{ po.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Additional Stats -->
+    <div class="row mt-4 g-3">
+        <div class="col-md-3 col-sm-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-receipt text-success" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ total_sales_count }}</h4>
+                    <p class="text-muted mb-0">Total Transactions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-truck text-info" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ active_suppliers }}</h4>
+                    <p class="text-muted mb-0">Active Suppliers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-file-earmark-text text-warning" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ pending_pos }}</h4>
+                    <p class="text-muted mb-0">Pending Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-inbox text-primary" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ recent_deliveries }}</h4>
+                    <p class="text-muted mb-0">Recent Deliveries (30d)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

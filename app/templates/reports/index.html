@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Reports - National Book Store{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4"><i class="bi bi-graph-up"></i> Reports & Analytics</h1>
+    
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="text-muted">Total Sales (All Time)</h5>
+                    <h2 class="text-success">₱{{ "{:,.2f}".format(total_sales) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="text-muted">This Month Sales</h5>
+                    <h2 class="text-primary">₱{{ "{:,.2f}".format(month_sales) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-star"></i> Top 10 Products (Last 30 Days)</div>
+        <div class="card-body">
+            {% if top_products %}
+            <table class="table">
+                <thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th></tr></thead>
+                <tbody>
+                    {% for product in top_products %}
+                    <tr>
+                        <td>{{ product.title }}</td>
+                        <td>{{ product.total_sold }}</td>
+                        <td>₱{{ "{:,.2f}".format(product.revenue) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-center text-muted">No sales data available</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam text-info" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2">{{ total_products }}</h4>
+                    <p class="text-muted mb-0">Total Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2">{{ low_stock_count }}</h4>
+                    <p class="text-muted mb-0">Low Stock Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-truck text-primary" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2">{{ active_suppliers }}</h4>
+                    <p class="text-muted mb-0">Active Suppliers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('inventory.inventory_report') }}" class="btn btn-primary"><i class="bi bi-file-earmark-bar-graph"></i> Inventory Report</a>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary"><i class="bi bi-speedometer2"></i> Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

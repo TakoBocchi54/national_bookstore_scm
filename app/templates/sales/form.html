@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}New Sale{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4"><i class="bi bi-cash-coin"></i> New Sales Transaction</h1>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" id="salesForm">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Customer Name (Optional)</label>
+                        <input type="text" class="form-control" name="customer_name" placeholder="Walk-in customer">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                        <select class="form-select" name="payment_method" required>
+                            <option value="Cash" selected>Cash</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Debit Card">Debit Card</option>
+                            <option value="GCash">GCash</option>
+                            <option value="PayMaya">PayMaya</option>
+                        </select>
+                    </div>
+                    <div class="col-12"><hr></div>
+                    <div class="col-12"><h5>Items</h5></div>
+                    <div id="items-container">
+                        <div class="row g-2 mb-2 item-row">
+                            <div class="col-md-5">
+                                <select class="form-control product-select" name="product_id[]" required>
+                                    <option value="">Select Product</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}" data-price="{{ product.unit_price }}" data-stock="{{ product.current_stock }}">
+                                        {{ product.title }} (Stock: {{ product.current_stock }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2"><input type="number" class="form-control qty-input" name="quantity[]" placeholder="Qty" min="1" required></div>
+                            <div class="col-md-2"><input type="number" class="form-control price-input" name="unit_price[]" placeholder="Price" step="0.01" readonly required></div>
+                            <div class="col-md-2"><input type="text" class="form-control subtotal-display" placeholder="Subtotal" readonly></div>
+                            <div class="col-md-1"><button type="button" class="btn btn-sm btn-danger" onclick="removeItem(this)"><i class="bi bi-trash"></i></button></div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="addItem()"><i class="bi bi-plus"></i> Add Item</button>
+                    </div>
+                    <div class="col-12"><hr></div>
+                    <div class="col-12"><h4>Total: <span id="grandTotal" class="text-success">₱0.00</span></h4></div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-check"></i> Complete Sale</button>
+                        <a href="{{ url_for('sales.list_sales') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+function addItem() {
+    const container = document.getElementById('items-container');
+    const newRow = container.querySelector('.item-row').cloneNode(true);
+    newRow.querySelectorAll('input, select').forEach(el => {el.value = ''; if(el.classList.contains('price-input') || el.classList.contains('subtotal-display')) el.value = '';});
+    container.appendChild(newRow);
+    attachEventListeners();
+}
+function removeItem(btn) {
+    if (document.querySelectorAll('.item-row').length > 1) {
+        btn.closest('.item-row').remove();
+        calculateGrandTotal();
+    }
+}
+function attachEventListeners() {
+    document.querySelectorAll('.product-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const row = this.closest('.item-row');
+            const option = this.options[this.selectedIndex];
+            const price = option.dataset.price || 0;
+            row.querySelector('.price-input').value = price;
+            calculateSubtotal(row);
+        });
+    });
+    document.querySelectorAll('.qty-input').forEach(input => {
+        input.addEventListener('input', function() {
+            calculateSubtotal(this.closest('.item-row'));
+        });
+    });
+}
+function calculateSubtotal(row) {
+    const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+    const price = parseFloat(row.querySelector('.price-input').value) || 0;
+    const subtotal = qty * price;
+    row.querySelector('.subtotal-display').value = '₱' + subtotal.toFixed(2);
+    calculateGrandTotal();
+}
+function calculateGrandTotal() {
+    let total = 0;
+    document.querySelectorAll('.item-row').forEach(row => {
+        const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        total += qty * price;
+    });
+    document.getElementById('grandTotal').textContent = '₱' + total.toFixed(2);
+}
+attachEventListeners();
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Record Delivery{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4"><i class="bi bi-inbox"></i> Record Delivery for {{ po.po_number }}</h1>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <p><strong>Supplier:</strong> {{ po.supplier.name }}</p>
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" name="notes" rows="2"></textarea>
+                </div>
+                <h5>Items to Receive</h5>
+                <table class="table">
+                    <thead><tr><th>Product</th><th>Ordered Qty</th><th>Received Qty</th></tr></thead>
+                    <tbody>
+                        {% for item in po.items %}
+                        <tr>
+                            <td>{{ item.product.title }}<input type="hidden" name="product_id[]" value="{{ item.product_id }}"></td>
+                            <td>{{ item.quantity }}</td>
+                            <td><input type="number" class="form-control" name="quantity_received[]" value="{{ item.quantity }}" min="0" max="{{ item.quantity }}" required></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-success"><i class="bi bi-check"></i> Record Delivery</button>
+                <a href="{{ url_for('purchase_orders.view_po', po_id=po.id) }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

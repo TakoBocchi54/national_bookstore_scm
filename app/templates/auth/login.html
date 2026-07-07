@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - National Book Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --brand-red: #DC143C;
+            --brand-maroon: #800000;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        /* Left Side - Brand Panel */
+        .brand-panel {
+            background: linear-gradient(135deg, var(--brand-maroon) 0%, var(--brand-red) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
+        }
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            bottom: -80px;
+            right: -80px;
+        }
+        .brand-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 400px;
+        }
+        .brand-logo {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .brand-content h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+        .brand-content p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+        .brand-features {
+            margin-top: 3rem;
+            text-align: left;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        .feature-item i {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            opacity: 0.8;
+        }
+        /* Right Side - Login Form */
+        .login-panel {
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+        }
+        .login-header {
+            margin-bottom: 2rem;
+        }
+        .login-header h2 {
+            color: var(--brand-maroon);
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .login-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+        .form-label {
+            color: var(--brand-maroon);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-control {
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .form-control:focus {
+            border-color: var(--brand-red);
+            box-shadow: 0 0 0 0.2rem rgba(220, 20, 60, 0.1);
+            background: #fff;
+        }
+        .input-group-text {
+            background: #f8f9fa;
+            border: 2px solid #e8e8e8;
+            border-right: none;
+            color: var(--brand-maroon);
+            border-radius: 8px 0 0 8px;
+            font-size: 1.1rem;
+        }
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+        }
+        .input-group:focus-within .input-group-text {
+            border-color: var(--brand-red);
+            background: white;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, var(--brand-maroon) 0%, var(--brand-red) 100%);
+            border: none;
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(128, 0, 0, 0.3);
+            color: white;
+        }
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        .alert {
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+        .alert-danger {
+            background: #ffe8e8;
+            color: var(--brand-maroon);
+            border-left: 4px solid var(--brand-red);
+        }
+        .demo-credentials {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-top: 2rem;
+            border: 2px solid #e0e0e0;
+        }
+        .demo-credentials p {
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #555;
+        }
+        .demo-credentials strong {
+            color: var(--brand-maroon);
+        }
+        .demo-credentials code {
+            background: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
+            color: var(--brand-red);
+            font-weight: 600;
+            border: 1px solid #ddd;
+            font-size: 0.85rem;
+        }
+        .demo-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            color: var(--brand-maroon);
+            font-weight: 700;
+        }
+        .demo-header i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+            .brand-panel {
+                display: none;
+            }
+            .login-panel {
+                background: linear-gradient(135deg, rgba(128, 0, 0, 0.02) 0%, rgba(220, 20, 60, 0.02) 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Side - Brand Panel -->
+    <div class="brand-panel">
+        <div class="brand-content">
+            <div class="brand-logo">
+                <i class="bi bi-book-fill"></i>
+            </div>
+            <h1>National Book Store</h1>
+            <p>Inventory & Supply Chain Management System</p>
+            
+            <div class="brand-features">
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Real-time Inventory Tracking</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Automated Stock Management</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Purchase Order Processing</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Sales & Analytics Reports</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Side - Login Form -->
+    <div class="login-panel">
+        <div class="login-container">
+            <div class="login-header">
+                <h2>Welcome Back</h2>
+                <p>Sign in to continue to your account</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="Enter your username" required autofocus>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="Enter your password" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-login w-100">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </button>
+            </form>
+            
+            <div class="demo-credentials">
+                <div class="demo-header">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Demo Credentials</span>
+                </div>
+                <p class="mb-1"><strong>Manager:</strong> <code>manager</code> / <code>password</code></p>
+                <p class="mb-1"><strong>Inventory Staff:</strong> <code>staff</code> / <code>password</code></p>
+                <p class="mb-0"><strong>Cashier:</strong> <code>cashier</code> / <code>password</code></p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Deliveries{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4"><i class="bi bi-inbox"></i> Deliveries</h1>
+    <div class="card">
+        <div class="card-body">
+            {% if deliveries.items %}
+            <table class="table">
+                <thead><tr><th>Delivery#</th><th>PO#</th><th>Supplier</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for delivery in deliveries.items %}
+                    <tr>
+                        <td><a href="{{ url_for('deliveries.view_delivery', delivery_id=delivery.id) }}">{{ delivery.delivery_number }}</a></td>
+                        <td><a href="{{ url_for('purchase_orders.view_po', po_id=delivery.purchase_order.id) }}">{{ delivery.purchase_order.po_number }}</a></td>
+                        <td>{{ delivery.purchase_order.supplier.name }}</td>
+                        <td>{{ delivery.delivery_date.strftime('%b %d, %Y') }}</td>
+                        <td><span class="badge bg-success">{{ delivery.status }}</span></td>
+                        <td><a href="{{ url_for('deliveries.view_delivery', delivery_id=delivery.id) }}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-center text-muted">No deliveries recorded yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

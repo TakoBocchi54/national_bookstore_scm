@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Report - National Book Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-file-earmark-bar-graph"></i> Comprehensive Inventory Report
+        </h1>
+        <div>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print Report
+            </button>
+            <a href="{{ url_for('inventory.view_inventory') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Inventory
+            </a>
+        </div>
+    </div>
+    
+    <!-- Report Header -->
+    <div class="card mb-4">
+        <div class="card-body text-center">
+            <h2>National Book Store</h2>
+            <h5 class="text-muted">Inventory Status Report</h5>
+            <p class="text-muted mb-0">Generated on {{ now().strftime('%B %d, %Y at %I:%M %p') }}</p>
+        </div>
+    </div>
+    
+    <!-- Summary Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="text-muted">Total Products</h5>
+                    <h2>{{ total_products }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="text-muted">Total Units</h5>
+                    <h2>{{ "{:,}".format(total_items) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="text-muted">Total Inventory Value</h5>
+                    <h2 class="text-success">₱{{ "{:,.2f}".format(total_value) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stock Status Breakdown -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                    <h3 class="mt-2">{{ in_stock_count }}</h3>
+                    <p class="text-muted mb-0">In Stock</p>
+                    <small class="text-muted">{{ "%.1f"|format((in_stock_count / total_products * 100) if total_products > 0 else 0) }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                    <h3 class="mt-2">{{ low_stock_count }}</h3>
+                    <p class="text-muted mb-0">Low Stock</p>
+                    <small class="text-muted">{{ "%.1f"|format((low_stock_count / total_products * 100) if total_products > 0 else 0) }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <i class="bi bi-x-circle text-danger" style="font-size: 2rem;"></i>
+                    <h3 class="mt-2">{{ out_of_stock_count }}</h3>
+                    <p class="text-muted mb-0">Out of Stock</p>
+                    <small class="text-muted">{{ "%.1f"|format((out_of_stock_count / total_products * 100) if total_products > 0 else 0) }}%</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category Breakdown -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-pie-chart"></i> Inventory by Category
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th class="text-center">Product Count</th>
+                            <th class="text-center">Total Units</th>
+                            <th class="text-end">Total Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in category_stats %}
+                        <tr>
+                            <td><strong>{{ cat.category }}</strong></td>
+                            <td class="text-center">{{ cat.count }}</td>
+                            <td class="text-center">{{ "{:,}".format(cat.total_stock) }}</td>
+                            <td class="text-end">₱{{ "{:,.2f}".format(cat.total_value) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-primary">
+                            <th>Total</th>
+                            <th class="text-center">{{ total_products }}</th>
+                            <th class="text-center">{{ "{:,}".format(total_items) }}</th>
+                            <th class="text-end">₱{{ "{:,.2f}".format(total_value) }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Product List -->
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-list-check"></i> Complete Product List
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-end">Stock Value</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr {% if product.is_out_of_stock %}class="table-danger"{% elif product.is_low_stock %}class="table-warning"{% endif %}>
+                            <td>
+                                <strong>{{ product.title }}</strong>
+                                {% if product.author %}<br><small class="text-muted">by {{ product.author }}</small>{% endif %}
+                            </td>
+                            <td>{{ product.category or '-' }}</td>
+                            <td class="text-end">₱{{ "{:,.2f}".format(product.unit_price) }}</td>
+                            <td class="text-center">{{ product.current_stock }}</td>
+                            <td class="text-end">₱{{ "{:,.2f}".format(product.current_stock * product.unit_price) }}</td>
+                            <td class="text-center">
+                                {% if product.stock_status == 'In Stock' %}
+                                    <span class="badge status-in-stock">In Stock</span>
+                                {% elif product.stock_status == 'Low Stock' %}
+                                    <span class="badge status-low-stock">Low</span>
+                                {% else %}
+                                    <span class="badge status-out-of-stock">Out</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+@media print {
+    .btn, .navbar, .flash-messages {
+        display: none !important;
+    }
+    .card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}
+{% endblock %}

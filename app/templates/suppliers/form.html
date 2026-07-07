@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{% if supplier %}Edit{% else %}Add{% endif %} Supplier - National Book Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-truck"></i> {% if supplier %}Edit{% else %}Add New{% endif %} Supplier
+                </h1>
+                <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" id="supplierForm">
+                        <div class="row g-3">
+                            <!-- Supplier Name -->
+                            <div class="col-md-12">
+                                <label for="name" class="form-label">Supplier Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ supplier.name if supplier else '' }}" required>
+                            </div>
+                            
+                            <!-- Contact Person -->
+                            <div class="col-md-6">
+                                <label for="contact_person" class="form-label">Contact Person</label>
+                                <input type="text" class="form-control" id="contact_person" name="contact_person" 
+                                       value="{{ supplier.contact_person if supplier else '' }}">
+                            </div>
+                            
+                            <!-- Phone -->
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="phone" name="phone" 
+                                       value="{{ supplier.phone if supplier else '' }}">
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="col-md-12">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ supplier.email if supplier else '' }}">
+                            </div>
+                            
+                            <!-- Address -->
+                            <div class="col-md-12">
+                                <label for="address" class="form-label">Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="3">{{ supplier.address if supplier else '' }}</textarea>
+                            </div>
+                            
+                            <!-- Active Status (only for edit) -->
+                            {% if supplier %}
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                                           {% if supplier.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        Active Supplier
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Submit Buttons -->
+                            <div class="col-md-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> {% if supplier %}Update{% else %}Add{% endif %} Supplier
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

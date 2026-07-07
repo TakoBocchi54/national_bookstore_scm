@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory - National Book Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-clipboard-data"></i> Inventory Management
+        </h1>
+        <div>
+            <a href="{{ url_for('inventory.low_stock_alerts') }}" class="btn btn-warning">
+                <i class="bi bi-exclamation-triangle"></i> Low Stock Alerts
+                {% if low_stock_count + out_of_stock_count > 0 %}
+                <span class="badge bg-dark">{{ low_stock_count + out_of_stock_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('inventory.inventory_report') }}" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-bar-graph"></i> Generate Report
+            </a>
+        </div>
+    </div>
+    
+    <!-- Summary Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam text-primary" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ total_products }}</h4>
+                    <p class="text-muted mb-0">Total Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ in_stock_count }}</h4>
+                    <p class="text-muted mb-0">In Stock</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ low_stock_count }}</h4>
+                    <p class="text-muted mb-0">Low Stock</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-x-circle text-danger" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-1">{{ out_of_stock_count }}</h4>
+                    <p class="text-muted mb-0">Out of Stock</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventory Value -->
+    <div class="card mb-4">
+        <div class="card-body text-center">
+            <h5 class="text-muted mb-2">Total Inventory Value</h5>
+            <h2 class="text-success mb-0">₱{{ "{:,.2f}".format(inventory_value) }}</h2>
+        </div>
+    </div>
+    
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('inventory.view_inventory') }}" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="search" 
+                           placeholder="Search by title, author, or ISBN..." 
+                           value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="stock_filter">
+                        <option value="all" {% if stock_filter == 'all' %}selected{% endif %}>All Stock Status</option>
+                        <option value="in_stock" {% if stock_filter == 'in_stock' %}selected{% endif %}>In Stock</option>
+                        <option value="low_stock" {% if stock_filter == 'low_stock' %}selected{% endif %}>Low Stock</option>
+                        <option value="out_of_stock" {% if stock_filter == 'out_of_stock' %}selected{% endif %}>Out of Stock</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        {% for cat in all_categories %}
+                        <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Inventory List -->
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-list-ul"></i> Inventory Items ({{ products.total }} total)
+        </div>
+        <div class="card-body">
+            {% if products.items %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Supplier</th>
+                            <th>Unit Price</th>
+                            <th>Current Stock</th>
+                            <th>Reorder Level</th>
+                            <th>Stock Value</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products.items %}
+                        <tr {% if product.is_out_of_stock %}class="table-danger"{% elif product.is_low_stock %}class="table-warning"{% endif %}>
+                            <td>
+                                <strong>{{ product.title }}</strong>
+                                {% if product.author %}<br><small class="text-muted">by {{ product.author }}</small>{% endif %}
+                            </td>
+                            <td>{{ product.category or '-' }}</td>
+                            <td>{{ product.supplier.name }}</td>
+                            <td>₱{{ "{:,.2f}".format(product.unit_price) }}</td>
+                            <td>
+                                <strong class="{% if product.is_out_of_stock %}text-danger{% elif product.is_low_stock %}text-warning{% else %}text-success{% endif %}">
+                                    {{ product.current_stock }}
+                                </strong>
+                            </td>
+                            <td>{{ product.reorder_level }}</td>
+                            <td>₱{{ "{:,.2f}".format(product.current_stock * product.unit_price) }}</td>
+                            <td>
+                                {% if product.stock_status == 'In Stock' %}
+                                    <span class="badge status-in-stock">{{ product.stock_status }}</span>
+                                {% elif product.stock_status == 'Low Stock' %}
+                                    <span class="badge status-low-stock">{{ product.stock_status }}</span>
+                                {% else %}
+                                    <span class="badge status-out-of-stock">{{ product.stock_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('products.view_product', product_id=product.id) }}" 
+                                   class="btn btn-sm btn-info" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if session.role in ['Manager', 'Inventory Staff'] and (product.is_low_stock or product.is_out_of_stock) %}
+                                <a href="{{ url_for('purchase_orders.create_po', product_id=product.id) }}" 
+                                   class="btn btn-sm btn-primary" title="Create Purchase Order">
+                                    <i class="bi bi-cart-plus"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if products.pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-3">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if not products.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('inventory.view_inventory', page=products.prev_num, search=search, stock_filter=stock_filter, category=category) }}">
+                            Previous
+                        </a>
+                    </li>
+                    
+                    {% for page_num in products.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == products.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('inventory.view_inventory', page=page_num, search=search, stock_filter=stock_filter, category=category) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if not products.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('inventory.view_inventory', page=products.next_num, search=search, stock_filter=stock_filter, category=category) }}">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-clipboard-data"></i>
+                <p>No inventory items found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}{% if product %}Edit{% else %}Add{% endif %} Product - National Book Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-box-seam"></i> {% if product %}Edit{% else %}Add New{% endif %} Product
+                </h1>
+                <a href="{{ url_for('products.list_products') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" id="productForm">
+                        <div class="row g-3">
+                            <!-- ISBN -->
+                            <div class="col-md-6">
+                                <label for="isbn" class="form-label">ISBN</label>
+                                <input type="text" class="form-control" id="isbn" name="isbn" 
+                                       value="{{ product.isbn if product else '' }}">
+                                <small class="text-muted">Optional - Unique identifier</small>
+                            </div>
+                            
+                            <!-- Title -->
+                            <div class="col-md-6">
+                                <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       value="{{ product.title if product else '' }}" required>
+                            </div>
+                            
+                            <!-- Author -->
+                            <div class="col-md-6">
+                                <label for="author" class="form-label">Author</label>
+                                <input type="text" class="form-control" id="author" name="author" 
+                                       value="{{ product.author if product else '' }}">
+                            </div>
+                            
+                            <!-- Hybrid Category System -->
+                            <div class="col-md-6">
+                                <label for="category_select" class="form-label">Category</label>
+                                <select class="form-select" id="category_select" name="category_select">
+                                    <option value="">-- Select or enter custom below --</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if product and product.category == cat %}selected{% endif %}>
+                                        {{ cat }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Select from dropdown or enter custom category below</small>
+                            </div>
+                            
+                            <!-- Custom Category -->
+                            <div class="col-md-12">
+                                <label for="category_custom" class="form-label">Custom Category</label>
+                                <input type="text" class="form-control" id="category_custom" name="category_custom" 
+                                       value="{% if product and product.category not in categories %}{{ product.category }}{% endif %}"
+                                       placeholder="Enter custom category if not in dropdown">
+                                <small class="text-muted">If you enter a custom category, it will override the dropdown selection</small>
+                            </div>
+                            
+                            <!-- Description -->
+                            <div class="col-md-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3">{{ product.description if product else '' }}</textarea>
+                            </div>
+                            
+                            <!-- Supplier -->
+                            <div class="col-md-6">
+                                <label for="supplier_id" class="form-label">Supplier <span class="text-danger">*</span></label>
+                                <select class="form-select" id="supplier_id" name="supplier_id" required>
+                                    <option value="">-- Select Supplier --</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}" 
+                                            {% if (product and product.supplier_id == supplier.id) or (preselected_supplier == supplier.id) %}selected{% endif %}>
+                                        {{ supplier.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Unit Price -->
+                            <div class="col-md-6">
+                                <label for="unit_price" class="form-label">Unit Price (₱) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="unit_price" name="unit_price" 
+                                       step="0.01" min="0" 
+                                       value="{{ product.unit_price if product else '' }}" required>
+                            </div>
+                            
+                            <!-- Reorder Level -->
+                            <div class="col-md-6">
+                                <label for="reorder_level" class="form-label">Reorder Level <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="reorder_level" name="reorder_level" 
+                                       min="0" 
+                                       value="{{ product.reorder_level if product else 10 }}" required>
+                                <small class="text-muted">Alert when stock reaches this level</small>
+                            </div>
+                            
+                            <!-- Current Stock (only for new products) -->
+                            {% if not product %}
+                            <div class="col-md-6">
+                                <label for="current_stock" class="form-label">Initial Stock</label>
+                                <input type="number" class="form-control" id="current_stock" name="current_stock" 
+                                       min="0" value="0">
+                                <small class="text-muted">Starting inventory quantity</small>
+                            </div>
+                            {% else %}
+                            <div class="col-md-6">
+                                <label class="form-label">Current Stock</label>
+                                <div class="form-control-plaintext">
+                                    <strong>{{ product.current_stock }}</strong> units
+                                    <small class="text-muted d-block">Use stock adjustment on view page to change</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Active Status (only for edit) -->
+                            {% if product %}
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                                           {% if product.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        Active Product
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Submit Buttons -->
+                            <div class="col-md-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> {% if product %}Update{% else %}Add{% endif %} Product
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Clear dropdown when custom category is entered
+document.getElementById('category_custom').addEventListener('input', function() {
+    if (this.value.trim()) {
+        document.getElementById('category_select').value = '';
+    }
+});
+
+// Clear custom category when dropdown is selected
+document.getElementById('category_select').addEventListener('change', function() {
+    if (this.value) {
+        document.getElementById('category_custom').value = '';
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}
